@@ -1,13 +1,14 @@
 const express = require('express');
 const IPFS = require('ipfs');
 const Ctl = require('ipfsd-ctl')
-const ipfsClient = require('ipfs-http-client');
 
-const ipfs = ipfsClient('http://localhost:5001');
 const app = express();
 
-var    ipfsid1 ;
-var    ipfsid2 ;
+var    ipfsd1 ;
+var    ipfsd2 ;
+var    factory1 ;
+var    factory2 ;
+
 app.use(express.json());
 
 var setup = [
@@ -52,42 +53,55 @@ app.get('/', (req, res) => {
     return res.send('Welcome to my IPFS app');
 });
 
-app.get('/startnode', (req, res) => {
-var userid=req.param('userid'); 
+app.get('/startnode/:userid', async (req, res) => {
+var userid=req.params.userid;
+console.log(req.params);
+
 var id ;
    if(userid == 'user1') {
-    id = ipfsd1.api.id();
-    console.log("ipfsid="+id);
-    ipsid1 = user1server() ;
+    await user1server() ;
+    id = await ipfsd1.api.id();
+    console.log("ipfsid="+JSON.stringify(id));
    }
    if(userid == 'user2') {
-    id = ipfsd2.api.id();
-    console.log("ipfsid="+id);
-    ipsid2 = user2server() ;
+    await user2server() ;
+    id = await ipfsd2.api.id();
+    console.log("ipfsid="+JSON.stringify(id));
    }
     return res.send('Started nodes  ');
 });
 
-app.get('/stopnode', (req, res) => {
-var userid=req.param('userid'); 
+app.get('/stopnode/:userid', async (req, res) => {
+var userid=req.params.userid;
 var id ;
-    ipsid1.stop();
    if(userid == 'user2') {
-    id = ipfsd2.api.id();
-    console.log("ipfsid="+id);
-    ipsid2.stop();
-    id = ipfsd2.api.id();
-    console.log("ipfsid="+id);
+      if(!ipfsd2) {
+       return res.send('Node not running ');
+       }
+    id = await ipfsd2.api.id();
+    console.log("Before stopping ipfsid="+JSON.stringify(id));
+    ipfsd2.stop();
+    id = await ipfsd2.api.id();
+    console.log("After stopping ipfsid="+JSON.stringify(id));
    }
    if(userid == 'user1') {
-    console.log("ipfsid="+ipfsd1.api.id());
-    ipsid1.stop();
-    console.log("ipfsid="+ipfsd1.api.id());
+      if(!ipfsd1) {
+       return res.send('Node not running ');
+       }
+    id = await ipfsd1.api.id();
+    console.log("Before stopping ipfsid="+JSON.stringify(id));
+    ipfsd1.stop().then(async (xx)=> {
+      id = await ipfsd1.api.id();
+      console.log("After stopping ipfsid="+JSON.stringify(id));
+    }).catch(err=>{
+      console.log("Stopping failed ="+ err );
+    });
    }
     return res.send('Stopped nodes  ');
 });
 
-app.get('/getporttouse', (req, res) => {
+app.get('/getporttouse/:userid', (req, res) => {
+var userid=req.params.userid;
 //	req.param 
    if(userid == 'user2') {
      return res.json(setup[1]);
@@ -118,34 +132,40 @@ const addFile = async ({ path, content }) => {
 
 async function user1server() 
 {
-const factory = Ctl.createFactory({ type: 'js', 
-	ipfsOptions: {
-        repo: '/home/rameshbn/ramipfs',
-        config: config1
-		 },
-	test: true, disposable: true })
-ipfsd1 = await factory.spawn() // Spawns using options from `createFactory`
+ipfsd1 = await factory1.spawn() // Spawns using options from `createFactory`
 
 var id = ipfsd1.api.id();
 console.log(ipfsd1.api.id())
+	return ipfsd1;
 }
 
 
 async function user2server() 
 {
-const factory1 = Ctl.createFactory({ type: 'js', 
-	ipfsOptions: {
-        repo: '/home/rameshbn/ramipfs1',
-        config: config2
-		 },
-	test: true, disposable: true })
-ipfsd2 = await factory1.spawn() // Spawns using options from `createFactory`
+ipfsd2 = await factory2.spawn() // Spawns using options from `createFactory`
 console.log(ipfsd2.api.id())
 
 
 
 }
 
+
+function createfactories() {
+factory1 = Ctl.createFactory({ type: 'js', 
+	ipfsOptions: {
+        repo: '/home/rameshbn/ramipfs',
+        config: config1
+		 },
+	test: true, disposable: true })
+factory2 = Ctl.createFactory({ type: 'js', 
+	ipfsOptions: {
+        repo: '/home/rameshbn/ramipfs1',
+        config: config2
+		 },
+	test: true, disposable: true })
+}
+
+createfactories() ;
 
 app.listen(8080, () => {
     console.log('Server running on port 8080');
