@@ -11,12 +11,7 @@ var promise = new Promise(function (resolve, reject) {
         if (error) {
            reject(error);
         }
-        if (typeof body === 'string') {
-        console.log('Body:', body)
-
-        }
-    resolve(body);
-        // return callback(null, body)
+       resolve(body);
     });
   });
 
@@ -32,48 +27,44 @@ var promise = new Promise(function (resolve, reject) {
         if (error) {
            reject(error);
         }
-        if (typeof body === 'string') {
-        console.log('Body:', body)
-
-        }
-    resolve(body);
+       resolve(body);
     });
   });
 
   return promise;
 }
 
-function sendtx(tx)
-{
-   var pushtx = {
-    tx: tx.toHex()
-   };
 
-var config = {
- params: pushtx
-};
+var argv = process.argv;
 
-   var lurl = 'https://api.blockcypher.com/v1/btc/test3/txs/push';
-   var promise = new Promise(function (resolve, reject) {
-   console.log("before push=", JSON.stringify(pushtx));
-
-
-   request.post(lurl, {body:JSON.stringify(pushtx)} , function (error, response, body) {
-        if (error) {
-           reject(error);
-        }
-        resolve(body);
-     });
-
-    });
-
-   return promise;
+if(argv.length != 4) {
+  console.log("Usage 'node switch.js <start/stop> <user1>'");
+	process.exit(0);
 }
 
-startnode('user1').then(xx=> {
-console.log(xx);	
-}).catch(err=>{
-console.log(err);	
-});
 
+console.log("Command = "+ argv[2]);
+console.log("User    = "+ argv[3]);
+
+var username = argv[3];
+
+if(argv[2] == 'start') {
+
+   startnode(username).then(xx=> {
+	console.log("Message = "+xx);	
+   }).catch(err=>{
+	console.log("Error="+ err);	
+   });
+
+}
+
+if(argv[2] == 'stop') {
+
+   stopnode(username).then(xx=> {
+	console.log("Message = "+xx);	
+   }).catch(err=>{
+	console.log("Error="+ err);	
+   });
+
+}
 

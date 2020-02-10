@@ -78,24 +78,29 @@ var id ;
       if(!ipfsd2) {
        return res.send('Node not running ');
        }
+    try {
     id = await ipfsd2.api.id();
     console.log("Before stopping ipfsid="+JSON.stringify(id));
-    ipfsd2.stop();
-    id = await ipfsd2.api.id();
-    console.log("After stopping ipfsid="+JSON.stringify(id));
+    await ipfsd2.stop();
+
+    }catch (err) {
+	    console.log ("ipfsd2 err="+ err);
+    }
+    // id = await ipfsd2.api.id();
+    //console.log("After stopping ipfsid="+JSON.stringify(id));
    }
    if(userid == 'user1') {
       if(!ipfsd1) {
        return res.send('Node not running ');
        }
+   try {
     id = await ipfsd1.api.id();
     console.log("Before stopping ipfsid="+JSON.stringify(id));
-    ipfsd1.stop().then(async (xx)=> {
-      id = await ipfsd1.api.id();
-      console.log("After stopping ipfsid="+JSON.stringify(id));
-    }).catch(err=>{
-      console.log("Stopping failed ="+ err );
-    });
+    // await factory2.clean();
+    await ipfsd1.stop();
+    }catch (err) {
+	    console.log ("ipfsd1 err="+ err);
+    }
    }
     return res.send('Stopped nodes  ');
 });
