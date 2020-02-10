@@ -45,8 +45,7 @@ User    = user1
 Message = Started nodes  
 
 ```
-- After server start 
-Verify it works
+- After server start verify it works
 ```
 node clienttesting.js 
 [ { path: 'tmp/myfile.txt',
@@ -65,8 +64,7 @@ User    = user1
 Message = Stopped nodes  
 
 ```
-- Testing after server stop
-Verify it fails again
+- Testing after server stop verify it fails again
 
 ```
 
